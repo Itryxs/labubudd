@@ -41,9 +41,10 @@ jobs:
       - name: Install dependencies (if package.json exists)
         run: |
           if (Test-Path -Path ./game/package.json) {
-            cd game
+            Push-Location ./game
             npm ci
-            cd ..
+            if ($LASTEXITCODE -ne 0) { Write-Error "npm ci failed"; exit 1 }
+            Pop-Location
           } else {
             Write-Host "No package.json found under ./game — skipping npm ci"
           }
@@ -51,8 +52,10 @@ jobs:
       - name: Build (electron-builder) if configured
         run: |
           if (Test-Path -Path ./game/package.json) {
-            cd game
-            npm run dist || (Write-Host "npm run dist failed or not defined"; exit 1)
+            Push-Location ./game
+            npm run dist
+            if ($LASTEXITCODE -ne 0) { Write-Error "npm run dist failed or not defined"; exit 1 }
+            Pop-Location
           } else {
             Write-Host "No package.json -> cannot run build. Ensure the ZIP contains a Node/Electron project."
             exit 1
